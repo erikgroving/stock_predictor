@@ -1,5 +1,6 @@
 from StockPredictor import StockPredictor
 import matplotlib.pyplot as plt
 
-predictor = StockPredictor()
-predictor.plotPercentChange('MSFT')
+predictor = StockPredictor('SPY')
+#predictor.plotVolume()
+#predictor.plotPercentChange()

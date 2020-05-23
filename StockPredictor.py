@@ -5,29 +5,55 @@ from StockDataApi import StockDataApi
 from StockDataFetcher import StockDataFetcher
 
 class StockPredictor:
-    def readDataFromJson(self, ticker):
-        filename = ticker + '_stockData.json'
+    ticker = ''
+    volume = []
+    dayChanges = []
+    dates = []
+
+    def __init__(self, ticker):
+        self.ticker = ticker
+
+    def createRandomForest(self):
+        return
+
+    def createLstm(self):
+        return
+
+    def readDataFromJson(self):
+        if self.volume:
+            return
+
+        filename = self.ticker + '_stockData.json'
         if path.exists(filename) != True:
             fetcher = StockDataFetcher()
-            fetcher.writeDataToFile(ticker)
+            fetcher.writeDataToFile(self.ticker)
         file = open(filename, 'r')
         stockdata = json.load(file)
 
-        dates = []
-        dayChanges = []
         for day in stockdata['chart']:
-            dates.append(day['date'])
-            dayChanges.append(day['changePercent'])
-        return dates, dayChanges
+            self.dates.append(day['date'])
+            self.volume.append(day['volume'])
+            self.dayChanges.append(day['changePercent'])
+        return 
 
-    def plotPercentChange(self, ticker):
-        dates, dayChanges = self.readDataFromJson(ticker)
-        plt.plot(dates, dayChanges)
-        plt.hlines(0, 0, len(dates))
+    def plotPercentChange(self):
+        self.readDataFromJson()
+        plt.plot(self.dates, self.dayChanges)
+        plt.hlines(0, 0, len(self.dates))
         plt.xticks(rotation='vertical')
-        plt.title(ticker + ' % change over time')
+        plt.title(self.ticker + ' % change over time')
         plt.ylabel('Change in %')
         plt.xlabel('Date')
         plt.show()
+    
+    def plotVolume(self):
+        self.readDataFromJson()
+        plt.plot(self.dates, self.volume)
+        plt.xticks(rotation='vertical')
+        plt.title(self.ticker + ' volume over time')
+        plt.ylabel('Volume')
+        plt.xlabel('Date')
+        plt.show()
+
 
 
