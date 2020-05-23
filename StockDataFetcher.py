@@ -15,5 +15,4 @@ class StockDataFetcher:
         f = open(filename, 'w')
         f.write(json.dumps(result, indent=4))
         f.close()
-        print(json.dumps(result, indent=4))
 

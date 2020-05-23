@@ -19,6 +19,9 @@ class StockPredictor:
     def createLstm(self):
         return
 
+    def createNeuralNet(self):
+        return
+
     def readDataFromJson(self):
         if self.volume:
             return
