@@ -107,13 +107,24 @@ class StockPredictor:
 
     def backtestNeuralNet(self, daysForTraining, daysPerInput):
         self.generateBacktestSets(daysForTraining, daysPerInput)
+        totalPoints = 0
+        numCorrect = 0
         for i in range(len(self.sets)):
             data = self.sets[i][0]
             labels = self.sets[i][1]
             testdata = self.testPoints[i][0]
-            testpoints = self.testPoints[i][1]
+            testlabel = self.testPoints[i][1]
             self.createNeuralNetWithSetAndLabels(data, labels, daysPerInput)
             self.trainNeuralNet()
+            pred = self.net.predict(testdata)
+            if torch.argmax(pred) == testlabel:
+                numCorrect += 1
+            totalPoints += 1
+        print(numCorrect / totalPoints)
+        return numCorrect / totalPoints
+
+
+
 
 
 

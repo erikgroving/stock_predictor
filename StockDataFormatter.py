@@ -13,9 +13,9 @@ class StockDataFormatter:
         endPt = self.daysForTraining
         sets = []
         testPoints = []
-        while endPt != len(volume) + 1:
+        while endPt != len(volume):
             sets.append(self.createDataset(volume[startPt : endPt], daychanges[startPt : endPt]))
-            testPoints.append(self.createDataPoint(endPt, volume, daychanges), self.createLabelPoint(daychanges[endPt]))
+            testPoints.append((self.createDataPoint(endPt, volume, daychanges), self.createLabelPoint(daychanges[endPt])))
             startPt += 1
             endPt += 1
 

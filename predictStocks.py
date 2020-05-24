@@ -10,6 +10,14 @@ avg = 0
 n_tests = 100
 
 predictor = StockPredictor("SPY")
-predictor.backtestNeuralNet(50, 14)
+acc = 0
+for i in range(n_tests):
+    acc += predictor.backtestNeuralNet(20, 5)
+
+acc /= n_tests
+
+print("Average accuracy: " + str(acc))
+
+
 #predictor.plotVolume()
 #predictor.plotPercentChange()
