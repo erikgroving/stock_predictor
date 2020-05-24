@@ -9,7 +9,7 @@ from StockDataApi import StockDataApi
 from StockDataFetcher import StockDataFetcher
 from StockRandomForest import StockRandomForest
 from StockNeuralNetwork import StockNeuralNet
-
+from StockDataFormatter import StockDataFormatter
 from sklearn.preprocessing import normalize
 
 
@@ -21,6 +21,7 @@ class StockPredictor:
     rf = StockRandomForest(14, 4, 1000)
 
     def __init__(self, ticker):
+        self.df = StockDataFormatter()
         self.ticker = ticker
 
     def createRandomForest(self, days, depth, estimators):
@@ -29,13 +30,10 @@ class StockPredictor:
         self.rf.createDataset(self.volume[1:], self.dayChanges[1:])
     
     def trainRandomForest(self):
-        print('Training random forest...')
         self.rf.train()
 
     def trainAndValidateRandomForest(self):
-        print('Training and validating random forest...')
         return self.rf.trainAndValidate()
-
 
     def predictRandomForest(self):
         point = self.rf.createDataPoint(len(self.volume), self.volume, self.dayChanges)
@@ -47,29 +45,40 @@ class StockPredictor:
             return 'Random forest predicts that ' + self.ticker + ' will be red.'
         return self.rf.predict(point)
 
-
     def createLstm(self):
         return
 
+
+
     def createNeuralNet(self, days):
         self.readDataFromJson()
-        self.net = StockNeuralNet(days, 30)
+        self.normalizeData()
+        print(self.normVol.shape)
+        data, labels = self.df.createDataset(self.normVol, self.dayChanges)
+        self.net = StockNeuralNet(data, labels, days, 30)
+        return
+
+    def createNeuralNetWithSetAndLabels(self, data, labels, days):
+        self.net = StockNeuralNet(data, labels, days, 30)
+        return
+
+
+    def normalizeData(self):
         self.normVol = torch.Tensor(np.asarray(normalize([self.volume[1:]])[0]))
         self.normDayChanges = torch.Tensor(np.asarray(normalize([self.dayChanges[1:]])[0]))
 
-        self.net.createDataset(self.normVol, self.normDayChanges)
-        return
 
     def trainNeuralNet(self):
         self.net.train()
 
     def trainAndValidateNeuralNet(self):
-        print('Training and validating neural net...')
         return self.net.trainAndValidate()
 
     def predictNeuralNet(self):
-        point = self.net.createDataPoint(len(self.normVol), self.normVol, self.normDayChanges)
+        point = self.df.createDataPoint(len(self.normVol), self.normVol, self.normDayChanges)
         return self.net.predict(point)
+
+
 
     def readDataFromJson(self):
         if self.volume:
@@ -86,8 +95,27 @@ class StockPredictor:
             self.dates.append(day['date'])
             self.volume.append(day['volume'])
             self.dayChanges.append(day['changePercent'])
-        print(len(self.volume))
         return 
+
+
+
+    def generateBacktestSets(self, daysForTraining, daysPerInput):
+        self.readDataFromJson()
+        self.normalizeData()
+        self.formatter = StockDataFormatter(daysForTraining, daysPerInput)
+        self.sets, self.testPoints = self.formatter.genBacktestingDatasets(self.normVol, self.normDayChanges)
+
+    def backtestNeuralNet(self, daysForTraining, daysPerInput):
+        self.generateBacktestSets(daysForTraining, daysPerInput)
+        for i in range(len(self.sets)):
+            data = self.sets[i][0]
+            labels = self.sets[i][1]
+            testdata = self.testPoints[i][0]
+            testpoints = self.testPoints[i][1]
+            self.createNeuralNetWithSetAndLabels(data, labels, daysPerInput)
+            self.trainNeuralNet()
+
+
 
     def plotPercentChange(self):
         self.readDataFromJson()

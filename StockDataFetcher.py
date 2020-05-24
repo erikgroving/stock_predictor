@@ -6,8 +6,7 @@ class StockDataFetcher:
         api = StockDataApi()
         params = []
         params.append(("types", "chart"))
-        params.append(("range", "3m"))
-        params.append(("last", "100"))
+        params.append(("range", "6m"))
         result = api.getTickerPriceAndVolumeData(ticker, params)
 
         filename = ticker + '_stockData.json'

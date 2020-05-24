@@ -18,9 +18,8 @@ class NeuralNet(nn.Module):
 
     def __init__(self, input_size):
         super(NeuralNet, self).__init__()
-        self.fc1 = nn.Linear(input_size, 64)
-        self.fc2 = nn.Linear(64, 32)
-        self.fc3 = nn.Linear(32, 2)
+        self.fc1 = nn.Linear(input_size, 24)
+        self.fc2 = nn.Linear(24, 2)
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
@@ -28,54 +27,21 @@ class NeuralNet(nn.Module):
         return x
          
 class StockNeuralNet:
-    def __init__(self, n_previousDays, epochs):
+    def __init__(self, data, labels, n_previousDays, epochs):
         self.n_previousDays = n_previousDays
         self.net = NeuralNet(n_previousDays * 2)
         self.net.double()
-        #self.net.cuda()
         self.criterion = torch.nn.CrossEntropyLoss()
-        self.optim = torch.optim.Adam(self.net.parameters(), 1e-2)
+        self.optim = torch.optim.Adam(self.net.parameters(), 5e-3)
         self.epochs = epochs
+        self.data = data
+        self.labels = labels
 
         
-    def createDataset(self, volume, dayChanges):
-        numberOfDays = len(volume)
-        numPoints = len(range(self.n_previousDays, numberOfDays))
-
-        self.data = torch.zeros(numPoints, self.n_previousDays * 2).double()
-        self.labels = torch.zeros(numPoints).long()
-
-        for i in range(self.n_previousDays, numberOfDays):
-            self.data[i - self.n_previousDays] = self.createDataPoint(i, volume, dayChanges)
-            self.labels[i - self.n_previousDays] = self.createLabelPoint(dayChanges[i])
-        
-        print(self.data)
-        print(self.labels)
-        print(self.data.size())
-        print(self.labels.size())
-    
-    def createDataPoint(self, idx, volume, dayChanges):
-        startPt = idx - self.n_previousDays
-
-        points = torch.Tensor(np.zeros(self.n_previousDays * 2))
-        for i in range(startPt, idx):
-            points[i - startPt] = volume[i]
-        for i in range(idx - self.n_previousDays, idx):
-            points[i - startPt + self.n_previousDays] = dayChanges[i]
-        return points
-
-    def createLabelPoint(self, change):
-        if change > 0:
-            return torch.Tensor([1]).long()
-        else:
-            return torch.Tensor([0]).long()
-
-
     def train(self):
         for j in range(self.epochs):
             y_pred = self.net(self.data)
             loss = self.criterion(y_pred, self.labels)
-            print(j, loss.item())
 
             self.optim.zero_grad()
             loss.backward()

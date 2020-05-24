@@ -50,8 +50,7 @@ class StockRandomForest:
         self.randomForestClassifier.fit(data, labels)
 
     def trainAndValidate(self):
-        print(len(self.data))
-        x_train, x_test, y_train, y_test = train_test_split(self.data, self.labels, test_size=0.25)
+        x_train, x_test, y_train, y_test = train_test_split(self.data, self.labels, test_size=0.1)
         self.trainWithData(x_train, y_train)
         preds = self.predict(x_test)
 
@@ -59,9 +58,7 @@ class StockRandomForest:
         for i in range(len(preds)):
             if preds[i] == y_test[i]:
                 num_correct += 1.
-        print('Results: ' + str(num_correct) + ' / ' + str(len(preds))) 
         accuracy = num_correct / len(y_test)
-        print('Accuracy was: ' + str(accuracy))
         return accuracy
 
 
