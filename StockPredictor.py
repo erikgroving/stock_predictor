@@ -22,7 +22,6 @@ class StockPredictor:
     rf = StockRandomForest(14, 4, 1000)
 
     def __init__(self, ticker):
-        self.df = StockDataFormatter()
         self.ticker = ticker
 
     def createRandomForest(self, days, depth, estimators):
@@ -40,11 +39,7 @@ class StockPredictor:
         point = self.rf.createDataPoint(len(self.volume), self.volume, self.dayChanges)
         point = np.asarray(point).reshape(1, -1)
         output = self.rf.predict(point)[0]
-        if output == 1:
-            return 'Random forest predicts that ' + self.ticker + ' will be green.'
-        else:
-            return 'Random forest predicts that ' + self.ticker + ' will be red.'
-        return self.rf.predict(point)
+        return output
 
     def normalizeData(self):
         self.normVol = torch.Tensor(np.asarray(normalize([self.volume[1:]])[0]))
@@ -69,13 +64,12 @@ class StockPredictor:
         return torch.argmax(self.lstm.predict(point)).item()
 
 
-    def createNeuralNet(self, days):
+    def createNeuralNet(self, daysForTraining, daysForInput):
         self.readDataFromJson()
         self.normalizeData()
-        print(self.normVol.shape)
+        self.df = StockDataFormatter(daysForTraining, daysForInput)
         data, labels = self.df.createDataset(self.normVol, self.dayChanges)
-        self.net = StockNeuralNet(data, labels, days, 30)
-        return
+        self.net = StockNeuralNet(data, labels, daysForInput, 20)
 
     def createNeuralNetWithSetAndLabels(self, data, labels, days):
         self.net = StockNeuralNet(data, labels, days, 20)
@@ -90,7 +84,7 @@ class StockPredictor:
 
     def predictNeuralNet(self):
         point = self.df.createDataPoint(len(self.normVol), self.normVol, self.normDayChanges)
-        return self.net.predict(point)
+        return torch.argmax(self.net.predict(point)).item()
 
 
     def readDataFromJson(self):

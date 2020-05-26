@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import torch.nn.functional as F
 import torch
 
-n_days = 14
+n_days = 8
 
 # random forest parameters
 depth = 20
@@ -42,9 +42,6 @@ def backtestLstm(ticker):
     print('Red Prediction Accuracy: ', str(redPredAcc))
     print('Overall Accuracy: ', str(overallAcc))
 
-    #for i in range(n_tests):
-    #    acc += predictor.backtestNeuralNet(20, 5)
-
 def predictTickerLstm(ticker):
     predictor = StockPredictor(ticker)
     predictor.createLstm(input_size, hidden_size, num_layers, daysForTraining, sequence_length)
@@ -57,9 +54,11 @@ def runAggregateLstmPred(ticker):
     redPreds = 0
     num_preds = 1000
     for i in range(num_preds):
-        pred = predictTickerLstm('SPY')
-        if i % 50 == 0:
+        pred = predictTickerLstm(ticker)
+        
+        if i % 200 == 0:
             print(i, '/', num_preds)
+        
         if pred == 1:
             greenPreds += 1
         else:
@@ -72,7 +71,71 @@ def runAggregateLstmPred(ticker):
     print('Green predictions: ', greenPreds)
     print('Red predictions: ', redPreds)
 
-runAggregateLstmPred('NVDA')
+def predictTickerNeuralNet(ticker):
+    predictor = StockPredictor(ticker)
+    predictor.createNeuralNet(daysForTraining, n_days)
+    predictor.trainNeuralNet()
+    return predictor.predictNeuralNet()
+
+def runAggregateNnPred(ticker):
+    greenPreds = 0
+    redPreds = 0
+    num_preds = 1000
+    for i in range(num_preds):
+        pred = predictTickerNeuralNet(ticker)
+       
+        if i % 200 == 0:
+            print(i, '/', num_preds)
+
+        if pred == 1:
+            greenPreds += 1
+        else:
+            redPreds += 1
+    
+    if greenPreds > redPreds:
+        print('Neural net predicts that ', ticker, ' will be green tomorrow')
+    else:
+        print('Neural net predicts that ', ticker, ' will be red tomorrow')
+    print('Green predictions: ', greenPreds)
+    print('Red predictions: ', redPreds)
+
+def predictTickerRandomForest(ticker):
+    predictor = StockPredictor(ticker)
+    predictor.createRandomForest(n_days, depth, estimators)
+    predictor.trainRandomForest()
+    return predictor.predictRandomForest()
+
+def runAggregateRandomForestPred(ticker):
+    greenPreds = 0
+    redPreds = 0
+    num_preds = 1000
+    for i in range(num_preds):
+        pred = predictTickerRandomForest(ticker)
+       
+        if i % 200 == 0:
+            print(i, '/', num_preds)
+
+        if pred == 1:
+            greenPreds += 1
+        else:
+            redPreds += 1
+    
+    if greenPreds > redPreds:
+        print('Random forest predicts that ', ticker, ' will be green tomorrow')
+    else:
+        print('Random forest predicts that ', ticker, ' will be red tomorrow')
+    print('Green predictions: ', greenPreds)
+    print('Red predictions: ', redPreds)
+
+def runAllAggregates(ticker):
+    runAggregateRandomForestPred(ticker)
+    runAggregateNnPred(ticker)
+    runAggregateLstmPred(ticker)
+
+runAllAggregates('SPY')
+runAllAggregates('NVDA')
+runAllAggregates('XOM')
+runAllAggregates('BA')
 
 #predictor.plotVolume()
 #predictor.plotPercentChange()
