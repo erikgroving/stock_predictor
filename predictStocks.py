@@ -6,8 +6,8 @@ import torch
 n_days = 8
 
 # random forest parameters
-depth = 20
-estimators = 5000
+depth = 8
+estimators = 1000
 
 #LSTM params
 input_size = 2 # volume + % change
@@ -52,7 +52,7 @@ def predictTickerLstm(ticker):
 def runAggregateLstmPred(ticker):
     greenPreds = 0
     redPreds = 0
-    num_preds = 1000
+    num_preds = 500
     for i in range(num_preds):
         pred = predictTickerLstm(ticker)
         
@@ -108,11 +108,11 @@ def predictTickerRandomForest(ticker):
 def runAggregateRandomForestPred(ticker):
     greenPreds = 0
     redPreds = 0
-    num_preds = 1000
+    num_preds = 20
     for i in range(num_preds):
         pred = predictTickerRandomForest(ticker)
        
-        if i % 200 == 0:
+        if i % 20 == 0:
             print(i, '/', num_preds)
 
         if pred == 1:
@@ -135,8 +135,8 @@ def runAllAggregates(ticker):
     print('Running LSTM ensemble model...')
     runAggregateLstmPred(ticker)
 
-runAllAggregates('SPY')
-runAllAggregates('NVDA')
+#runAllAggregates('SPY')
+#runAllAggregates('NVDA')
 runAllAggregates('XOM')
 runAllAggregates('BA')
 
