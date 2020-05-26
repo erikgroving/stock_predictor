@@ -4,20 +4,30 @@ import torch.nn.functional as F
 import torch
 
 n_days = 14
+
+# random forest parameters
 depth = 20
 estimators = 5000
-avg = 0
-n_tests = 100
+
+#LSTM params
+input_size = 2 # volume + % change
+hidden_size = 512
+sequence_length = 10
+num_layers = 1
+daysForTraining = 100
+
+sum = 0
+n_tests = 10
 
 predictor = StockPredictor("SPY")
-acc = 0
 for i in range(n_tests):
-    acc += predictor.backtestNeuralNet(20, 5)
+    sum += predictor.backtestLstm(input_size, hidden_size, num_layers, daysForTraining, sequence_length) 
 
-acc /= n_tests
+acc = sum / n_tests
+print('Accuracy: ', str(acc))
 
-print("Average accuracy: " + str(acc))
-
+#for i in range(n_tests):
+#    acc += predictor.backtestNeuralNet(20, 5)
 
 #predictor.plotVolume()
 #predictor.plotPercentChange()

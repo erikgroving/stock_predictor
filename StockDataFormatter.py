@@ -39,9 +39,8 @@ class StockDataFormatter:
 
         points = torch.Tensor(np.zeros(self.n_previousDays * 2))
         for i in range(startPt, idx):
-            points[i - startPt] = volume[i]
-        for i in range(idx - self.n_previousDays, idx):
-            points[i - startPt + self.n_previousDays] = dayChanges[i]
+            points[2 * (i - startPt)] = volume[i]
+            points[2 * (i - startPt) + 1] = dayChanges[i]
         return points
 
     def createLabelPoint(self, change):

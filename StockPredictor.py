@@ -10,6 +10,7 @@ from StockDataFetcher import StockDataFetcher
 from StockRandomForest import StockRandomForest
 from StockNeuralNetwork import StockNeuralNet
 from StockDataFormatter import StockDataFormatter
+from StockLstm import StockLstm
 from sklearn.preprocessing import normalize
 
 
@@ -45,9 +46,23 @@ class StockPredictor:
             return 'Random forest predicts that ' + self.ticker + ' will be red.'
         return self.rf.predict(point)
 
-    def createLstm(self):
+    def normalizeData(self):
+        self.normVol = torch.Tensor(np.asarray(normalize([self.volume[1:]])[0]))
+        self.normDayChanges = torch.Tensor(np.asarray(normalize([self.dayChanges[1:]])[0]))
+
+    def createLstm(self, input_size, hidden_size, num_layers):
+        self.readDataFromJson()
+        self.normalizeData()
+        data, labels = self.df.createDataset(self.normVol, self.dayChanges)
+        self.lstm = StockLstm(input_size, hidden_size, num_layers)
+        self.lstm.setDataAndLabels(data, labels)
         return
 
+    def trainLstm(self):
+        self.lstm.train()
+
+    def predictLstm(self):
+        self.lstm.predict()
 
 
     def createNeuralNet(self, days):
@@ -59,13 +74,8 @@ class StockPredictor:
         return
 
     def createNeuralNetWithSetAndLabels(self, data, labels, days):
-        self.net = StockNeuralNet(data, labels, days, 30)
+        self.net = StockNeuralNet(data, labels, days, 20)
         return
-
-
-    def normalizeData(self):
-        self.normVol = torch.Tensor(np.asarray(normalize([self.volume[1:]])[0]))
-        self.normDayChanges = torch.Tensor(np.asarray(normalize([self.dayChanges[1:]])[0]))
 
 
     def trainNeuralNet(self):
@@ -77,7 +87,6 @@ class StockPredictor:
     def predictNeuralNet(self):
         point = self.df.createDataPoint(len(self.normVol), self.normVol, self.normDayChanges)
         return self.net.predict(point)
-
 
 
     def readDataFromJson(self):
@@ -97,13 +106,11 @@ class StockPredictor:
             self.dayChanges.append(day['changePercent'])
         return 
 
-
-
     def generateBacktestSets(self, daysForTraining, daysPerInput):
         self.readDataFromJson()
         self.normalizeData()
         self.formatter = StockDataFormatter(daysForTraining, daysPerInput)
-        self.sets, self.testPoints = self.formatter.genBacktestingDatasets(self.normVol, self.normDayChanges)
+        self.sets, self.testPoints = self.formatter.genBacktestingDatasets(self.volume, self.dayChanges)
 
     def backtestNeuralNet(self, daysForTraining, daysPerInput):
         self.generateBacktestSets(daysForTraining, daysPerInput)
@@ -123,9 +130,26 @@ class StockPredictor:
         print(numCorrect / totalPoints)
         return numCorrect / totalPoints
 
+    def backtestLstm(self, input_size, hidden_size, num_layers, daysForTraining, daysPerInput):
+        self.generateBacktestSets(daysForTraining, daysPerInput)
+        totalPoints = 0
+        numCorrect = 0
+        for i in range(len(self.sets)):
+            data = self.sets[i][0]
+            data = data.reshape(-1, daysPerInput, input_size)
 
-
-
+            labels = self.sets[i][1]
+            testdata = self.testPoints[i][0].reshape(1, daysPerInput, input_size).
+            testlabel = self.testPoints[i][1]
+            self.createLstm(input_size, hidden_size, num_layers)
+            self.lstm.setDataAndLabels(data, labels)
+            self.trainLstm()
+            pred = self.lstm.predict(testdata)
+            if torch.argmax(pred) == testlabel:
+                numCorrect += 1
+            totalPoints += 1
+        print(numCorrect / totalPoints)
+        return numCorrect / totalPoints
 
 
     def plotPercentChange(self):
