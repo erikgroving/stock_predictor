@@ -39,7 +39,7 @@ class StockLstm:
 
     def train(self):
         for j in range(self.epochs):
-            y_pred = self.net(self.data.cuda())
+            y_pred = self.net(self.data)
             loss = self.criterion(y_pred, self.labels)
 
             self.optim.zero_grad()
@@ -48,7 +48,7 @@ class StockLstm:
     
     def trainWithData(self, data, labels, test_data, test_labels):
         for j in range(self.epochs):
-            y_pred = self.net(data.cuda())
+            y_pred = self.net(data)
             loss = self.criterion(y_pred, labels)
 
             self.optim.zero_grad()
@@ -66,4 +66,4 @@ class StockLstm:
 
 
     def predict(self, input):
-        return self.net(input.double().cuda())
+        return self.net(input.double())

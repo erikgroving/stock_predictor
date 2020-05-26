@@ -50,10 +50,12 @@ class StockPredictor:
         self.normVol = torch.Tensor(np.asarray(normalize([self.volume[1:]])[0]))
         self.normDayChanges = torch.Tensor(np.asarray(normalize([self.dayChanges[1:]])[0]))
 
-    def createLstm(self, input_size, hidden_size, num_layers):
+    def createLstm(self, input_size, hidden_size, num_layers, daysForTrain, sequence_length):
         self.readDataFromJson()
         self.normalizeData()
+        self.df = StockDataFormatter(daysForTrain, sequence_length)
         data, labels = self.df.createDataset(self.normVol, self.dayChanges)
+        data = data.reshape(-1, sequence_length, 2)
         self.lstm = StockLstm(input_size, hidden_size, num_layers)
         self.lstm.setDataAndLabels(data, labels)
         return
@@ -62,7 +64,9 @@ class StockPredictor:
         self.lstm.train()
 
     def predictLstm(self):
-        self.lstm.predict()
+        point = self.df.createDataPoint(len(self.normVol), self.normVol, self.normDayChanges)
+        point = point.reshape(1, -1, 2)
+        return torch.argmax(self.lstm.predict(point)).item()
 
 
     def createNeuralNet(self, days):
@@ -134,12 +138,18 @@ class StockPredictor:
         self.generateBacktestSets(daysForTraining, daysPerInput)
         totalPoints = 0
         numCorrect = 0
+        numGreenPreds = 0
+        numGreenPredAndDays = 0
+        numRedPreds = 0
+        numRedPredAndDays = 0
+        numGreenDays = 0
+        numRedDays = 0
         for i in range(len(self.sets)):
             data = self.sets[i][0]
             data = data.reshape(-1, daysPerInput, input_size)
 
             labels = self.sets[i][1]
-            testdata = self.testPoints[i][0].reshape(1, daysPerInput, input_size).
+            testdata = self.testPoints[i][0].reshape(1, daysPerInput, input_size)
             testlabel = self.testPoints[i][1]
             self.createLstm(input_size, hidden_size, num_layers)
             self.lstm.setDataAndLabels(data, labels)
@@ -147,9 +157,31 @@ class StockPredictor:
             pred = self.lstm.predict(testdata)
             if torch.argmax(pred) == testlabel:
                 numCorrect += 1
+
+            if torch.argmax(pred).item() == 1:
+                numGreenPreds += 1
+                if testlabel.item() == 1:
+                    numGreenPredAndDays += 1
+            
+            if torch.argmax(pred).item() == 0:
+                numRedPreds += 1
+                if testlabel.item() == 0:
+                    numRedPredAndDays += 1
+
+            if testlabel.item() == 0:
+                numRedDays += 1
+            else:
+                numGreenDays += 1
+
             totalPoints += 1
-        print(numCorrect / totalPoints)
-        return numCorrect / totalPoints
+
+        #print('Red days: ', str(numRedDays))
+        #print('Green days: ', numGreenDays)
+
+        greenPredAcc =  numGreenPredAndDays / numGreenPreds
+        redPredAcc = numRedPredAndDays / numRedPreds
+        overallAcc = numCorrect / totalPoints
+        return greenPredAcc, redPredAcc, overallAcc
 
 
     def plotPercentChange(self):
