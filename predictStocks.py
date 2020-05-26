@@ -128,8 +128,11 @@ def runAggregateRandomForestPred(ticker):
     print('Red predictions: ', redPreds)
 
 def runAllAggregates(ticker):
+    print('Running random forest ensemble model...')
     runAggregateRandomForestPred(ticker)
+    print('Running neural network ensemble model...')
     runAggregateNnPred(ticker)
+    print('Running LSTM ensemble model...')
     runAggregateLstmPred(ticker)
 
 runAllAggregates('SPY')
