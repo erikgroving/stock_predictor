@@ -145,17 +145,19 @@ offset = -0.1
 dates = []
 title = ''
 nDays = int(sys.argv[1])
-for arg in sys.argv[2:]:
+nDaysBeforeEnd = int(sys.argv[2])
+for arg in sys.argv[3:]:
     predictor = StockPredictor(arg)
     dates, changes, closes = predictor.getPercentChange()
-    
-    data = closes[-nDays:]
+
+    start = len(closes) - nDays
+    end = len(closes) - nDaysBeforeEnd 
+    data = closes[start:end]
     normData = []
-    max = np.max(data)
-    normData = data / max
+    normData = np.divide(data, data[0])
     normData = normData - normData[0]
 
-    plt.plot(dates[-nDays:], normData, label=arg)
+    plt.plot(dates[start:end], normData, label=arg)
     offset += 0.1
     title += arg + ' vs '
 
