@@ -2,6 +2,7 @@ from StockPredictor import StockPredictor
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
 import torch
+import sys
 
 n_days = 8
 
@@ -42,19 +43,21 @@ def backtestLstm(ticker):
     print('Red Prediction Accuracy: ', str(redPredAcc))
     print('Overall Accuracy: ', str(overallAcc))
 
-def predictTickerLstm(ticker):
+def predictTickerLstm(ticker, addTodaysData = False, vol = 0, chg = 0):
     predictor = StockPredictor(ticker)
+    if addTodaysData:
+        predictor.addVolumeAndChangeToData(vol, chg)
     predictor.createLstm(input_size, hidden_size, num_layers, daysForTraining, sequence_length)
     predictor.trainLstm()
     pred = predictor.predictLstm()
     return pred
 
-def runAggregateLstmPred(ticker):
+def runAggregateLstmPred(ticker, addTodaysData = False, vol = 0, chg = 0):
     greenPreds = 0
     redPreds = 0
     num_preds = 500
     for i in range(num_preds):
-        pred = predictTickerLstm(ticker)
+        pred = predictTickerLstm(ticker, addTodaysData, vol, chg)
         
         if i % 200 == 0:
             print(i, '/', num_preds)
@@ -135,10 +138,15 @@ def runAllAggregates(ticker):
     print('Running LSTM ensemble model...')
     runAggregateLstmPred(ticker)
 
-#runAllAggregates('SPY')
-#runAllAggregates('NVDA')
-runAllAggregates('XOM')
-runAllAggregates('BA')
+for arg in sys.argv[1:]:
+    predictor = StockPredictor(arg)
+    dates, changes = predictor.getPercentChange()
+    plt.plot(dates, changes, label=arg)
 
-#predictor.plotVolume()
-#predictor.plotPercentChange()
+plt.hlines(0, 0, len(dates))
+plt.xticks(rotation='vertical')
+plt.title('% change over time')
+plt.ylabel('Change in %')
+plt.xlabel('Date')
+plt.legend()
+plt.show()

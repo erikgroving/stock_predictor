@@ -15,14 +15,13 @@ from sklearn.preprocessing import normalize
 
 
 class StockPredictor:
-    ticker = ''
-    volume = []
-    dayChanges = []
-    dates = []
-    rf = StockRandomForest(14, 4, 1000)
 
     def __init__(self, ticker):
         self.ticker = ticker
+        self.volume = []
+        self.dayChanges = []
+        self.dates = []
+        self.rf = StockRandomForest(14, 4, 1000)
 
     def createRandomForest(self, days, depth, estimators):
         self.rf = StockRandomForest(days, depth, estimators)
@@ -86,11 +85,15 @@ class StockPredictor:
         point = self.df.createDataPoint(len(self.normVol), self.normVol, self.normDayChanges)
         return torch.argmax(self.net.predict(point)).item()
 
+    def addVolumeAndChangeToData(self, volumePoint, dayChangePoint):
+        self.readDataFromJson()
+        self.volume.append(volumePoint)
+        self.dayChanges.append(dayChangePoint)
 
     def readDataFromJson(self):
+        print(self.ticker)
         if self.volume:
             return
-
         filename = self.ticker + '_stockData.json'
         if path.exists(filename) != True:
             fetcher = StockDataFetcher()
@@ -177,6 +180,9 @@ class StockPredictor:
         overallAcc = numCorrect / totalPoints
         return greenPredAcc, redPredAcc, overallAcc
 
+    def getPercentChange(self):
+        self.readDataFromJson()
+        return self.dates, self.dayChanges
 
     def plotPercentChange(self):
         self.readDataFromJson()
