@@ -144,8 +144,8 @@ def runAllAggregates(ticker):
 offset = -0.1
 dates = []
 title = ''
-nDays = 40
-for arg in sys.argv[1:]:
+nDays = int(sys.argv[1])
+for arg in sys.argv[2:]:
     predictor = StockPredictor(arg)
     dates, changes, closes = predictor.getPercentChange()
     
@@ -161,7 +161,7 @@ for arg in sys.argv[1:]:
 
 title = title[:-4] + ' max normalized closes over time'
 
-
+plt.hlines(0, 0, len(normData) - 1)
 plt.xticks(rotation='vertical')
 plt.title(title)
 plt.xlabel('Date')
