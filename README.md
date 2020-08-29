@@ -7,4 +7,4 @@ This compares the last 30 days for AAPL, MSFT, and SPY
 `python3 compareTickers.py 30 AAPL MSFT SPY`
 
 Output:
-![SPY, AAPL, and MSFT](./example.png)
+![SPY, AAPL, and MSFT](https://github.com/erikgroving/stock_predictor/blob/master/example.PNG?raw=true)
