@@ -1,4 +1,3 @@
-Compare max normalized tickers.
 ## Usage:
 python3 compareTickers.py NUMDAYS #TICKER_1 #TICKER_2 ... #TICKER_N
 
