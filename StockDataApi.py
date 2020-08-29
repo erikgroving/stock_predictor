@@ -14,7 +14,7 @@ import requests
 class StockDataApi:
     url_base = 'https://cloud.iexapis.com/'
     ver = 'stable/'
-    token = 'pk_c89884ba30a947d4bc16eab61fcaef2d'
+    token = 'pk_64987d421e994d87b1b0b096ab7db3e6'
 
     def performQuery(self, query):
         r = requests.get(query)
