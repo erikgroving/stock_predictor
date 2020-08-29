@@ -1,5 +1,5 @@
 ## Usage:
-python3 compareTickers.py NUMDAYS #TICKER_1 #TICKER_2 ... #TICKER_N
+`python3 compareTickers.py NUMDAYS #TICKER_1 #TICKER_2 ... #TICKER_N`
 
 ## Example
 This compares the last 30 days for AAPL, MSFT, and SPY
