@@ -21,6 +21,7 @@ class StockPredictor:
         self.volume = []
         self.dayChanges = []
         self.dates = []
+        self.close = []
         self.rf = StockRandomForest(14, 4, 1000)
 
     def createRandomForest(self, days, depth, estimators):
@@ -91,7 +92,6 @@ class StockPredictor:
         self.dayChanges.append(dayChangePoint)
 
     def readDataFromJson(self):
-        print(self.ticker)
         if self.volume:
             return
         filename = self.ticker + '_stockData.json'
@@ -104,6 +104,7 @@ class StockPredictor:
         for day in stockdata['chart']:
             self.dates.append(day['date'])
             self.volume.append(day['volume'])
+            self.close.append(day['close'])
             self.dayChanges.append(day['changePercent'])
         return 
 
@@ -182,7 +183,7 @@ class StockPredictor:
 
     def getPercentChange(self):
         self.readDataFromJson()
-        return self.dates, self.dayChanges
+        return self.dates, self.dayChanges, self.close
 
     def plotPercentChange(self):
         self.readDataFromJson()

@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 import torch.nn.functional as F
 import torch
 import sys
+import datetime
+from matplotlib.dates import date2num
+import numpy as np
 
 n_days = 8
 
@@ -138,15 +141,30 @@ def runAllAggregates(ticker):
     print('Running LSTM ensemble model...')
     runAggregateLstmPred(ticker)
 
+offset = -0.1
+dates = []
+title = ''
+nDays = 40
 for arg in sys.argv[1:]:
     predictor = StockPredictor(arg)
-    dates, changes = predictor.getPercentChange()
-    plt.plot(dates, changes, label=arg)
+    dates, changes, closes = predictor.getPercentChange()
+    
+    data = closes[-nDays:]
+    normData = []
+    max = np.max(data)
+    normData = data / max
+    normData = normData - normData[0]
 
-plt.hlines(0, 0, len(dates))
+    plt.plot(dates[-nDays:], normData, label=arg)
+    offset += 0.1
+    title += arg + ' vs '
+
+title = title[:-4] + ' max normalized closes over time'
+
+
 plt.xticks(rotation='vertical')
-plt.title('% change over time')
-plt.ylabel('Change in %')
+plt.title(title)
 plt.xlabel('Date')
 plt.legend()
+plt.grid()
 plt.show()
